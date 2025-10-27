@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<idea-plugin>
+    <id>org.example.ta</id>
+    <name>TA Assistant</name>
+    <vendor email="team@example.com" url="https://example.com">TA Team</vendor>
+    <description>Minimal skeleton for TA IntelliJ plugin (F0 prototype).</description>
+
+    <!-- Depend on base IntelliJ platform modules -->
+    <depends>com.intellij.modules.platform</depends>
+
+    <extensions defaultExtensionNs="com.intellij">
+        <!-- Register tool window on right side -->
+        <toolWindow id="TA Chat" anchor="right" factoryClass="org.ta.ui.ChatToolWindowFactory"/>
+
+        <!-- Notification group for lightweight info popups -->
+        <notificationGroup id="TA Notifications" displayType="BALLOON"/>
+    </extensions>
+
+    <actions>
+        <!-- Action will be added to the editor right-click menu -->
+        <action id="AskSelectedCodeAction" class="org.ta.actions.AskSelectedCodeAction" text="Ask Selected Code to TA Chat" description="Send selected code as context to TA">
+            <add-to-group group-id="EditorPopupMenu" anchor="last"/>
+        </action>
+    </actions>
+</idea-plugin>
