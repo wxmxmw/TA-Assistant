@@ -18,9 +18,9 @@
 
 ## 快速运行
 
-Step 1. 用 IntelliJ IDEA 2024.2 打开本项目（Gradle 项目）。IntelliJ 会自动识别为 Gradle 项目，无需额外配置。但有可能会出现项目构建失败（如grable压缩包下载失败），可见B站视频解决问题。
-Step 2. 打开 Gradle 工具窗，展开根项目 `TA` → `intellij` → 双击运行 `runIde`。
-Step 3. 启动的沙箱 IDE 中新建项目后：
+Step 1. 用 IntelliJ IDEA 2024.2 打开本项目（Gradle 项目）。IntelliJ 会自动识别为 Gradle 项目，无需额外配置。但有可能会出现项目构建失败（如grable压缩包下载失败），可见B站视频解决问题。  
+Step 2. 打开 Gradle 工具窗，展开根项目 `TA` → `intellij` → 双击运行 `runIde`。  
+Step 3. 启动的沙箱 IDE 中新建项目后：  
 
 - 右侧工具窗列表找到 `TA Chat`，输入问题点击“发送”，可看到演示回复且控制台打印问题。
 - 在任意文件选中代码，右键点击 `Ask Selected Code to TA Chat`，聊天窗将带上下文提问并弹出通知。
