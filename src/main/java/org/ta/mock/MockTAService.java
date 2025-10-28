@@ -25,7 +25,7 @@ public class MockTAService implements RagService {
         return new Answer(
                 reply,
                 Collections.<Citation>emptyList(),
-                "general_knowledge"
+                true
         );
     }
 }
