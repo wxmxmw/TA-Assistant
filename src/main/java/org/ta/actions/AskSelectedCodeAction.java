@@ -10,6 +10,7 @@ import com.intellij.openapi.project.Project;
 import com.intellij.openapi.wm.ToolWindow;
 import com.intellij.openapi.wm.ToolWindowManager;
 import com.intellij.ui.content.Content;
+import com.intellij.openapi.vfs.VirtualFile;
 import org.jetbrains.annotations.NotNull;
 import org.ta.ui.ChatPanel;
 
@@ -40,7 +41,11 @@ public class AskSelectedCodeAction extends AnAction {
                 Content[] contents = toolWindow.getContentManager().getContents();
                 for (Content content : contents) {
                     if (content.getComponent() instanceof ChatPanel panel) {
-                        panel.ask("基于选中代码，请给出建议。", Optional.of(selectedText));
+                        // Determine filename for chip title
+                        VirtualFile vf = e.getData(CommonDataKeys.VIRTUAL_FILE);
+                        String title = (vf != null) ? vf.getName() : "当前文件";
+                        // Stash context instead of sending immediately
+                        panel.addContext(title, selectedText);
                         break;
                     }
                 }
@@ -49,7 +54,7 @@ public class AskSelectedCodeAction extends AnAction {
 
         NotificationGroupManager.getInstance()
                 .getNotificationGroup("TA Notifications")
-                .createNotification("已将选中代码作为上下文发送", NotificationType.INFORMATION)
+                .createNotification("已暂存选中代码为上下文", NotificationType.INFORMATION)
                 .notify(project);
     }
 }

@@ -3,7 +3,9 @@ package org.ta.mock;
 import java.util.logging.Logger;
 import org.ta.api.Answer;
 import org.ta.api.Citation;
+import org.ta.api.LLMClient;
 import org.ta.api.RagService;
+import org.ta.llm.SiliconLLMClient;
 
 import java.util.Collections;
 import java.util.Optional;
@@ -19,8 +21,10 @@ public class MockTAService implements RagService {
         // Log to IntelliJ log and standard out for visibility
         LOG.info("UserQuestion: " + question);
         System.out.println("UserQuestion: " + question);
+        SiliconLLMClient llmClient=new SiliconLLMClient("sk-vxlhkdlhcupthzbhbsgjodibgplhupnjsmlunudidlipbnut","deepseek-ai/DeepSeek-V3.2-Exp");
 
-        String reply = "这是一个演示回复：我们已收到你的问题，稍后将接入课程材料。";
+        String reply = llmClient.generate(question);
+
 
         return new Answer(
                 reply,
