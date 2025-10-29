@@ -6,7 +6,7 @@
     <description>Minimal skeleton for TA IntelliJ plugin (F0 prototype).</description>
 
     <!-- 添加这一行！指定插件支持的 IntelliJ 版本范围 -->
-    <idea-version since-build="252" until-build="252.*"/>
+    <idea-version since-build="242" until-build="242.*"/>
 
     <!-- Depend on base IntelliJ platform modules -->
     <depends>com.intellij.modules.platform</depends>

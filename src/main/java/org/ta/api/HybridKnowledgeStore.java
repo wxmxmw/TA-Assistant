@@ -1,13 +1,19 @@
 package org.ta.api;
 
+import java.io.IOException;
 import java.nio.file.Path;
 import java.util.*;
 import java.util.stream.Collectors;
 
 public class HybridKnowledgeStore implements KnowledgeStore {
-    private final LuceneKnowledgeStore luceneStore = new LuceneKnowledgeStore();
-    private final EmbeddingIndex embeddingIndex = new EmbeddingIndex(); // 自建的向量索引器
-    private final double alpha = 0.6; // Lucene 权重
+    private final LuceneKnowledgeStore luceneStore;
+    private final EmbeddingIndex embeddingIndex = new EmbeddingIndex();
+    private final double alpha = 0.6;
+
+    public HybridKnowledgeStore() throws IOException {
+        Path indexPath = Path.of("C:/Users/LENOVO/IdeaProjects/TA-Assistant/index");
+        this.luceneStore = new LuceneKnowledgeStore(indexPath);
+    }
 
     @Override
     public void addDocuments(List<Path> docs) {

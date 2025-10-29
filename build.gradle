@@ -1,19 +1,24 @@
 plugins {
     id 'java'
-    id 'org.jetbrains.intellij' version '1.17.3'
+    id 'org.jetbrains.intellij' version '1.17.3' // 固定版本
+
 }
+
 
 group = 'org.example'
 version = '1.0-SNAPSHOT'
 
 repositories {
     mavenCentral()
+    maven { url 'https://maven.aliyun.com/repository/public' }
+
 }
 
 intellij {
     // Use IntelliJ IDEA 2024.2 platform for sandbox runIde
     version = '2024.2'
     plugins = []
+    updateSinceUntilBuild = false
 }
 
 java {
@@ -27,8 +32,34 @@ dependencies {
     testImplementation platform('org.junit:junit-bom:5.10.0')
     testImplementation 'org.junit.jupiter:junit-jupiter'
     testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
-}
+    implementation 'org.apache.pdfbox:pdfbox:2.0.30'
+    implementation 'org.apache.poi:poi:5.2.5'
+    implementation 'org.apache.poi:poi-ooxml:5.2.5'
+//    implementation 'org.apache.lucene:lucene-core:8.11.3'
+//    implementation 'org.apache.lucene:lucene-queryparser:8.11.3'
+//    implementation 'org.apache.lucene:lucene-analyzers-common:8.11.3'
+    implementation 'org.nd4j:nd4j-native-platform:1.0.0-beta7'
 
+    // DJL 完整配置
+    implementation 'ai.djl:api:0.24.0'
+    implementation 'ai.djl:model-zoo:0.24.0'
+
+    // HuggingFace 和 PyTorch
+
+
+    implementation 'com.fasterxml.jackson.core:jackson-databind:2.15.2'
+    implementation 'org.slf4j:slf4j-simple:2.0.9'
+
+    implementation 'org.apache.lucene:lucene-analysis-common:9.10.0'
+    implementation 'org.apache.lucene:lucene-core:9.10.0'
+    implementation 'org.apache.lucene:lucene-backward-codecs:9.10.0'
+    implementation 'org.apache.lucene:lucene-queryparser:9.10.0'
+
+
+
+}
 test {
     useJUnitPlatform()
 }
+
+

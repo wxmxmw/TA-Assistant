@@ -5,6 +5,8 @@ import org.ta.mock.MockTAService;
 
 import javax.swing.*;
 import java.awt.*;
+import java.io.IOException;
+import java.net.URISyntaxException;
 import java.util.Optional;
 
 /**
@@ -64,7 +66,17 @@ public class ChatPanel extends JPanel {
             appendLine("上下文: " + titles);
         }
         appendLine("你: " + question);
-        Answer answer = service.answer(question, codeContext, 3);
+        Answer answer = null;
+        try {
+            answer = service.answer(question, codeContext, 3);
+        } catch (IOException e) {
+            e.printStackTrace();
+            // 你可以弹出一个提示框给用户：
+             JOptionPane.showMessageDialog(this, "文件读取失败：" + e.getMessage());
+        } catch (URISyntaxException e) {
+            throw new RuntimeException(e);
+        }
+
         appendLine("TA: " + answer.getText());
     }
 

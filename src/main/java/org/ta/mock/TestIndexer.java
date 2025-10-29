@@ -5,11 +5,12 @@ import org.ta.api.KnowledgeStore;
 import org.ta.api.LuceneKnowledgeStore;
 import org.ta.api.RetrievedChunk;
 
+import java.io.IOException;
 import java.nio.file.Path;
 import java.util.List;
 
 public class TestIndexer {
-    public static void main(String[] args) {
+    public static void main(String[] args) throws IOException {
         KnowledgeStore store = new HybridKnowledgeStore();
 
         // 1. 添加 PDF 文档（这里改成你自己的路径）
