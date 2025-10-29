@@ -23,7 +23,8 @@ public class LuceneKnowledgeStore implements KnowledgeStore {
     public void addDocuments(List<Path> docs) {
         try (IndexWriter writer = new IndexWriter(directory, new IndexWriterConfig(analyzer))) {
             for (Path path : docs) {
-                List<DocumentParser.PageText> pages = parser.parsePdfByPage(path);
+                List<DocumentParser.PageText> pages = parser.parse(path);
+
 
                 for (DocumentParser.PageText page : pages) {
                     Document doc = new Document();
@@ -54,11 +55,13 @@ public class LuceneKnowledgeStore implements KnowledgeStore {
                 String page = d.get("pageRange");
                 double score = sd.score;
 
-                results.add(new RetrievedChunk(text, file, page, score));
+                results.add(new RetrievedChunk(file, page, text, score)); // ✅ 修正顺序
+                System.out.printf("🔍 Match: [%s@%s]  score=%.3f%n", file, page, score);
             }
         } catch (Exception e) {
             e.printStackTrace();
         }
         return results;
     }
+
 }

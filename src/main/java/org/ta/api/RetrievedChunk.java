@@ -10,7 +10,8 @@ public class RetrievedChunk {
 
     private final String sourceFile; // The name of the document the chunk came from (e.g., "Week_4_Slides.pdf")
     private final String pageRange;  // The page or pages the chunk is from (e.g., "15" or "15-16")
-    private final String content;    // The actual text content of the chunk
+    private final String content;
+    private final double score;// The actual text content of the chunk
 
     /**
      * Constructs a new RetrievedChunk.
@@ -18,10 +19,11 @@ public class RetrievedChunk {
      * @param pageRange The page range.
      * @param content The text content.
      */
-    public RetrievedChunk(String sourceFile, String pageRange, String content) {
+    public RetrievedChunk(String sourceFile, String pageRange, String content,double score) {
         this.sourceFile = sourceFile;
         this.pageRange = pageRange;
         this.content = content;
+        this.score = score;
     }
 
     // --- GETTER METHODS ---
@@ -63,5 +65,13 @@ public class RetrievedChunk {
     @Override
     public int hashCode() {
         return Objects.hash(sourceFile, pageRange, content);
+    }
+
+    public double getScore() {
+        return score;
+    }
+
+    public Object getSourcePath() {
+        return sourceFile;
     }
 }
