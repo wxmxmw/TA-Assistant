@@ -38,18 +38,7 @@ dependencies {
 //    implementation 'org.apache.lucene:lucene-core:8.11.3'
 //    implementation 'org.apache.lucene:lucene-queryparser:8.11.3'
 //    implementation 'org.apache.lucene:lucene-analyzers-common:8.11.3'
-    // DJL 核心
-    implementation 'ai.djl:api:0.24.0'
-    implementation 'ai.djl:model-zoo:0.24.0'
 
-    // HuggingFace 支持
-    implementation 'ai.djl.huggingface:tokenizers:0.24.0'
-
-    // PyTorch 引擎（向量模型需要）
-    implementation 'ai.djl.pytorch:pytorch-engine:0.24.0'
-    implementation 'ai.djl.pytorch:pytorch-model-zoo:0.24.0'
-    runtimeOnly 'ai.djl.pytorch:pytorch-jni:2.0.1-0.24.0'
-    runtimeOnly 'ai.djl.pytorch:pytorch-native-cpu:2.0.1:win-x86_64'
 
     implementation 'org.apache.lucene:lucene-analysis-common:9.10.0'
     implementation 'org.apache.lucene:lucene-core:9.10.0'
@@ -57,7 +46,35 @@ dependencies {
     implementation 'org.apache.lucene:lucene-queryparser:9.10.0'
 
 
+    // ✅ DJL - 全部用 implementation，确保打包到插件
+    implementation 'ai.djl:api:0.24.0'
+    implementation 'ai.djl:model-zoo:0.24.0'
+    implementation 'ai.djl.huggingface:tokenizers:0.24.0'
 
+    implementation 'ai.djl.pytorch:pytorch-engine:0.24.0'
+    implementation 'ai.djl.pytorch:pytorch-model-zoo:0.24.0'
+
+    // ✅ 原生库也改成 implementation
+    implementation 'ai.djl.pytorch:pytorch-jni:2.0.1-0.24.0'
+    implementation 'ai.djl.pytorch:pytorch-native-cpu:2.0.1:win-x86_64'
+
+    // Jackson
+    implementation 'com.fasterxml.jackson.core:jackson-databind:2.15.2'
+
+    // 日志
+    implementation 'org.slf4j:slf4j-api:2.0.9'
+    implementation 'org.slf4j:slf4j-simple:2.0.9'
+}
+
+// ✅ 重要：配置插件任务，包含所有依赖
+prepareSandbox {
+    doLast {
+        // 复制所有运行时依赖到插件目录
+        copy {
+            from configurations.runtimeClasspath
+            into "${project.buildDir}/idea-sandbox/plugins/${project.name}/lib"
+        }
+    }
 }
 test {
     useJUnitPlatform()

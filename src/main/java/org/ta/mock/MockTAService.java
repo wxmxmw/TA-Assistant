@@ -28,7 +28,7 @@ public class MockTAService  {
         LOG.info("UserQuestion: " + question);
         System.out.println("UserQuestion: " + question);
         SiliconLLMClient llmClient=new SiliconLLMClient("sk-vxlhkdlhcupthzbhbsgjodibgplhupnjsmlunudidlipbnut","deepseek-ai/DeepSeek-V3.2-Exp");
-        KnowledgeStore store = new HybridKnowledgeStore();
+        KnowledgeStore store = new HybridKnowledgeStore("sk-vxlhkdlhcupthzbhbsgjodibgplhupnjsmlunudidlipbnut");
 
         // 1. 添加 PDF 文档（这里改成你自己的路径）
 

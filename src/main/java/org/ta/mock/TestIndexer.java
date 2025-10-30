@@ -11,7 +11,7 @@ import java.util.List;
 
 public class TestIndexer {
     public static void main(String[] args) throws IOException {
-        KnowledgeStore store = new HybridKnowledgeStore();
+        KnowledgeStore store = new HybridKnowledgeStore("sk-vxlhkdlhcupthzbhbsgjodibgplhupnjsmlunudidlipbnut");
 
         // 1. 添加 PDF 文档（这里改成你自己的路径）
         store.addDocuments(List.of(

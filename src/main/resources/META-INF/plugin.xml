@@ -11,6 +11,7 @@
     <!-- Depend on base IntelliJ platform modules -->
     <depends>com.intellij.modules.platform</depends>
 
+
     <extensions defaultExtensionNs="com.intellij">
         <!-- Register tool window on right side -->
         <toolWindow id="TA Chat" anchor="right" factoryClass="org.ta.ui.ChatToolWindowFactory"/>
