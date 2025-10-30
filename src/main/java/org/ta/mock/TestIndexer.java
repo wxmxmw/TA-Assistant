@@ -15,7 +15,7 @@ public class TestIndexer {
 
         // 1. 添加 PDF 文档（这里改成你自己的路径）
         store.addDocuments(List.of(
-                Path.of("docs/sample1.pdf")
+                Path.of("C:\\Users\\LENOVO\\IdeaProjects\\TA-Assistant\\src\\main\\resources\\docs\\sample1.pdf")
 
         ));
 

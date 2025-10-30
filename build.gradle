@@ -38,17 +38,18 @@ dependencies {
 //    implementation 'org.apache.lucene:lucene-core:8.11.3'
 //    implementation 'org.apache.lucene:lucene-queryparser:8.11.3'
 //    implementation 'org.apache.lucene:lucene-analyzers-common:8.11.3'
-    implementation 'org.nd4j:nd4j-native-platform:1.0.0-beta7'
-
-    // DJL 完整配置
+    // DJL 核心
     implementation 'ai.djl:api:0.24.0'
     implementation 'ai.djl:model-zoo:0.24.0'
 
-    // HuggingFace 和 PyTorch
+    // HuggingFace 支持
+    implementation 'ai.djl.huggingface:tokenizers:0.24.0'
 
-
-    implementation 'com.fasterxml.jackson.core:jackson-databind:2.15.2'
-    implementation 'org.slf4j:slf4j-simple:2.0.9'
+    // PyTorch 引擎（向量模型需要）
+    implementation 'ai.djl.pytorch:pytorch-engine:0.24.0'
+    implementation 'ai.djl.pytorch:pytorch-model-zoo:0.24.0'
+    runtimeOnly 'ai.djl.pytorch:pytorch-jni:2.0.1-0.24.0'
+    runtimeOnly 'ai.djl.pytorch:pytorch-native-cpu:2.0.1:win-x86_64'
 
     implementation 'org.apache.lucene:lucene-analysis-common:9.10.0'
     implementation 'org.apache.lucene:lucene-core:9.10.0'
