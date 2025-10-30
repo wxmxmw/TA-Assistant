@@ -16,7 +16,7 @@ public class HybridKnowledgeStore implements KnowledgeStore {
      */
     public HybridKnowledgeStore(String apiKey) throws IOException {
         // ✅ 初始化 Lucene 存储
-        Path indexPath = Path.of("C:/Users/LENOVO/IdeaProjects/TA-Assistant/index");
+        Path indexPath = Path.of("D:/Grade Three/Java/TA-Assistant/src/main/resources/doc/sample1.PDF");
         this.luceneStore = new LuceneKnowledgeStore(indexPath);
 
         // ✅ 初始化 API 嵌入索引，使用 bge-m3 模型

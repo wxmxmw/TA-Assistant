@@ -77,7 +77,7 @@ public class ChatPanel extends JPanel {
             throw new RuntimeException(e);
         }
 
-        appendLine("TA: " + answer.getText());
+        appendLine("TA: " + answer.toString());
     }
 
     // Add a selected code context (title shown as chip, text stored for prompt)
