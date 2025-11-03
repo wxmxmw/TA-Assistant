@@ -27,12 +27,12 @@ public class MockTAService  {
         // Log to IntelliJ log and standard out for visibility
         LOG.info("UserQuestion: " + question);
         System.out.println("UserQuestion: " + question);
-        SiliconLLMClient llmClient=new SiliconLLMClient("sk-vxlhkdlhcupthzbhbsgjodibgplhupnjsmlunudidlipbnut","deepseek-ai/DeepSeek-V3.2-Exp");
+        SiliconLLMClient llmClient=new SiliconLLMClient("sk-vxlhkdlhcupthzbhbsgjodibgplhupnjsmlunudidlipbnut","zai-org/GLM-4.5");
         KnowledgeStore store = new HybridKnowledgeStore("sk-vxlhkdlhcupthzbhbsgjodibgplhupnjsmlunudidlipbnut");
 
         // 1. 添加 PDF 文档（这里改成你自己的路径）
 
-        Path docPath = Path.of("D:/0-xiangmu/TA-Assistant/src/main/resources/docs/sample1.PDF");
+        Path docPath = Path.of("D:/Grade Three/Java/A1/TA-Assistant/TA-Assistant/src/main/resources/docs/sample1.PDF");
         store.addDocuments(List.of(docPath));
 
 
