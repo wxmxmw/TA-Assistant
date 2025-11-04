@@ -71,4 +71,56 @@ public class TAService implements ITAService {
         // 3. 执行 RAG 流程并返回结果
         return ragService.answer(question, codeContext, topK);
     }
+
+    //F2功能实现处
+
+    @Override
+    public String modifyCode(String instruction, String codeToModify) {
+        LOG.info("Performing code modification with GLM model.");
+
+        // 1. 构造专门用于代码修改的 Prompt
+        String prompt = buildCodeModificationPrompt(instruction, codeToModify);
+
+        // 2. 创建一个使用 GLM 模型的 LLM 客户端
+        SiliconLLMClient glmClient = new SiliconLLMClient(this.apiKey, AIModel.GLM.getModelName());
+
+        // 3. 调用 LLM 并返回结果
+        try {
+            String modifiedCode = glmClient.generate(prompt);
+            // AI有时会返回被 ```java ... ``` 包裹的代码块，我们需要清理它
+            return cleanCodeBlock(modifiedCode);
+        } catch (Exception e) {
+            LOG.severe("Failed to modify code with AI: " + e.getMessage());
+            // 返回原始代码或抛出异常，让上层处理
+            return "// AI modification failed: " + e.getMessage() + "\n" + codeToModify;
+        }
+    }
+
+    private String buildCodeModificationPrompt(String instruction, String code) {
+        return "你是一名资深的Java架构师和重构专家。\n" +
+                "你的任务是根据用户的指令，修改给定的Java代码片段。\n" +
+                "规则：\n" +
+                "1. 严格遵循用户的指令进行修改。\n" +
+                "2. 不要添加任何与代码无关的解释、注释或道歉。你的回答必须是纯粹的、可直接编译的Java代码。\n" +
+                "3. 保持原始代码的缩进和格式风格。\n" +
+                "4. 如果无法完成指令，请返回原始代码。\n\n" +
+                "[用户指令]\n" +
+                instruction + "\n\n" +
+                "[原始代码]\n" +
+                "```java\n" +
+                code + "\n" +
+                "```\n\n" +
+                "[修改后的代码]\n";
+    }
+
+    private String cleanCodeBlock(String response) {
+        // 移除 Markdown 代码块标记
+        if (response.startsWith("```java\n")) {
+            response = response.substring("```java\n".length());
+        }
+        if (response.endsWith("\n```")) {
+            response = response.substring(0, response.length() - "\n```".length());
+        }
+        return response.trim();
+    }
 }

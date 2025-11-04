@@ -25,5 +25,11 @@
         <action id="AskSelectedCodeAction" class="org.ta.actions.AskSelectedCodeAction" text="Ask Selected Code to TA Chat" description="Send selected code as context to TA">
             <add-to-group group-id="EditorPopupMenu" anchor="last"/>
         </action>
+
+        <!-- ✨ 你新加的 Action ✨ -->
+        <action id="TA.ModifyCodeWithAI" class="org.ta.actions.ModifyCodeWithAIAction"
+                text="Modify with AI..." description="Ask AI to refactor or modify the selected code.">
+            <add-to-group group-id="EditorPopupMenu" anchor="last"/>
+        </action>
     </actions>
 </idea-plugin>
