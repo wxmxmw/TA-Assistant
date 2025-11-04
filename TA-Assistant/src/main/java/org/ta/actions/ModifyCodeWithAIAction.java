@@ -27,7 +27,7 @@ import org.ta.ui.CodeModificationDialog;
 import javax.swing.*;
 import java.awt.*;
 import java.util.function.Consumer;
-
+import java.util.concurrent.atomic.AtomicBoolean;
 public class ModifyCodeWithAIAction extends AnAction {
 
     @Override
@@ -88,41 +88,56 @@ public class ModifyCodeWithAIAction extends AnAction {
         // 3. 定义回调
         Consumer<String> applyChangesCallback = (finalCode) -> applyChanges(project, editor, finalCode);
 
-        // 4. ✨ 关键改动：先创建 Dialog 对象，但还不要 show() ✨
         CodeModificationDialog dialog = new CodeModificationDialog(project, originalContent, modifiedContent, applyChangesCallback);
 
-        // 5. ✨ 关键改动：在显示对话框之前，先把后台任务提交出去 ✨
-        ProgressManager.getInstance().run(new Task.Backgroundable(project, "正在调用 AI 修改代码...") {
+        final AtomicBoolean isFirstChunk = new AtomicBoolean(true);
+
+        ProgressManager.getInstance().run(new Task.Backgroundable(project, "正在与 AI 建立连接...") {
             @Override
             public void run(@NotNull ProgressIndicator indicator) {
-                String modifiedCodeFromAI;
-                try {
-                    System.out.println("后台任务开始: 调用 AI 修改代码...");
-                    indicator.checkCanceled();
+                String apiKey = "sk-vxlhkdlhcupthzbhbsgjodibgplhupnjsmlunudidlipbnut";
 
-                    // ✨ 关键修改：不再创建 TAService 实例 ✨
-                    String apiKey = "sk-vxlhkdlhcupthzbhbsgjodibgplhupnjsmlunudidlipbnut";
-                    modifiedCodeFromAI = AIModificationUtil.modifyCode(instruction, originalCode, apiKey);
+                Consumer<String> onChunk = (chunk) -> {
+                    // ✨ 核心修正：使用 SwingUtilities.invokeLater 和 runWriteAction 统一处理UI更新
+                    SwingUtilities.invokeLater(() -> {
+                        // 在写操作中修改文档
+                        WriteCommandAction.runWriteCommandAction(project, () -> {
+                            if (!chunk.isEmpty() && isFirstChunk.getAndSet(false)) {
+                                dialog.clearText(); // 调用简化的清空方法
+                            }
+                            dialog.appendTextChunk(chunk); // 调用简化的追加方法
+                        });
+                    });
+                };
 
+                Runnable onComplete = () -> {
+                    System.out.println("AI 流式输出完成。");
+                    if (isFirstChunk.get()) {
+                        SwingUtilities.invokeLater(() -> {
+                            WriteCommandAction.runWriteCommandAction(project, () -> {
+                                dialog.updateModifiedContent("// AI 返回了空内容");
+                            });
+                        });
+                    }
+                };
 
-                    System.out.println("AI 调用成功，返回内容长度: " + (modifiedCodeFromAI != null ? modifiedCodeFromAI.length() : "null"));
-
-                } catch (Exception e) {
-                    System.err.println("后台任务执行失败!");
+                Consumer<Exception> onError = (e) -> {
+                    System.err.println("AI 流式输出错误: " + e.getMessage());
                     e.printStackTrace();
-                    modifiedCodeFromAI = "// AI 修改失败，请查看IDE日志获取详细信息。\n" +
-                            "// 错误: " + e.getMessage() + "\n\n" +
-                            originalCode;
-                }
+                    SwingUtilities.invokeLater(() -> {
+                        WriteCommandAction.runWriteCommandAction(project, () -> {
+                            dialog.updateModifiedContent("// AI 修改失败: " + e.getMessage());
+                        });
+                    });
+                };
 
-                System.out.println("准备更新 Diff 窗口...");
-                // 后台任务完成时，调用 dialog 实例的方法来更新 UI
-                dialog.updateModifiedContent(modifiedCodeFromAI);
+                AIModificationUtil.modifyCodeStream(instruction, originalCode, apiKey, onChunk, onComplete, onError);
             }
         });
 
-        // 6. ✨ 关键改动：现在，在后台任务已经开始运行之后，再安全地显示模态对话框 ✨
-        dialog.show(); // 这一步会阻塞当前线程，直到对话框关闭，但这没关系，因为后台任务已经在另一个线程里跑了。
+        dialog.show();
+
+
     }
     private void applyChanges(Project project, Editor editor, String newText) {
         Document document = editor.getDocument();

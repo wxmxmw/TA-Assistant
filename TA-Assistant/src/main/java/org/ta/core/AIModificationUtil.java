@@ -4,7 +4,7 @@ import org.ta.api.ITAService.AIModel; // 确保可以访问到这个枚举
 import org.ta.llm.SiliconLLMClient;
 
 import java.util.logging.Logger;
-
+import java.util.function.Consumer;
 /**
  * 一个轻量级的工具类，专门用于执行AI代码修改。
  * 它不包含任何与知识库(KnowledgeStore)相关的重量级初始化。
@@ -69,5 +69,19 @@ public final class AIModificationUtil {
             response = response.substring(0, response.length() - "\n```".length());
         }
         return response.trim();
+    }
+    /**
+     * 新增：以流式方式调用AI修改代码
+     */
+    public static void modifyCodeStream(String instruction, String codeToModify, String apiKey,
+                                        Consumer<String> onChunk, Runnable onComplete, Consumer<Exception> onError) {
+        LOG.info("Performing code modification with GLM model via streaming.");
+        String prompt = buildCodeModificationPrompt(instruction, codeToModify);
+
+        // 固定使用 GLM 模型
+        SiliconLLMClient glmClient = new SiliconLLMClient(apiKey, AIModel.GLM.getModelName());
+
+        // 直接透传回调函数
+        glmClient.generateStream(prompt, onChunk, onComplete, onError);
     }
 }

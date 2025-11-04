@@ -6,6 +6,12 @@ public class SiliconFlowRequest {
     private List<ChatMessage> messages;
     private Double temperature;
     private Integer maxTokens;
+    private boolean stream = false; // 默认不开启流式
+
+
+    public boolean isStream() { return stream; }
+    public void setStream(boolean stream) { this.stream = stream; }
+
 
     public SiliconFlowRequest() {}
 
@@ -13,7 +19,7 @@ public class SiliconFlowRequest {
         this.model = model;
         this.messages = messages;
         this.temperature = 0.7;
-        this.maxTokens = 1000;
+        this.maxTokens = 10000;
     }
 
     // getter和setter

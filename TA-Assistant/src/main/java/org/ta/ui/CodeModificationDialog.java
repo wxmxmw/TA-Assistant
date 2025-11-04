@@ -6,6 +6,7 @@ import com.intellij.diff.contents.DiffContent;
 import com.intellij.diff.contents.DocumentContent; // ✨ 引入 DocumentContent
 import com.intellij.diff.requests.SimpleDiffRequest;
 import com.intellij.openapi.application.ModalityState;
+import com.intellij.openapi.editor.Document;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.DialogWrapper;
 import org.jetbrains.annotations.Nullable;
@@ -54,11 +55,10 @@ public class CodeModificationDialog extends DialogWrapper {
 
     @Override
     protected void doOKAction() {
-        // ✨ CHANGE: Get the LATEST text from the document and pass it to the callback.
         if (applyCallback != null) {
-            // Get the text from the document, which may have been edited by the user.
+            // 这一行保持不变，它总是能获取到最新的文本
             String finalCode = modifiedContent.getDocument().getText();
-            applyCallback.accept(finalCode); // Use .accept() for a Consumer
+            applyCallback.accept(finalCode);
         }
         super.doOKAction();
     }
@@ -88,5 +88,40 @@ public class CodeModificationDialog extends DialogWrapper {
             });
         }, modalityState); // ✨ 4. 将获取到的 modalityState 作为参数传入
     }
+    /** 新增：清除右侧面板的初始文本 (如 "正在思考...") */
+    public void clearModifiedContent() {
+        updateModifiedContent(""); // 调用已有的方法，传入空字符串
+    }
 
+    /** 新增：向右侧面板追加文本块 */
+    public void appendModifiedContent(String textChunk) {
+        ModalityState modalityState = ModalityState.stateForComponent(getWindow());
+        ApplicationManager.getApplication().invokeLater(() -> {
+            ApplicationManager.getApplication().runWriteAction(() -> {
+                Document doc = modifiedContent.getDocument();
+                // 在文档末尾插入新的文本块
+                doc.insertString(doc.getTextLength(), textChunk);
+            });
+        }, modalityState);
+    }
+    /**
+     * ✨ 简化：这个方法现在只负责追加文本，不关心线程和写操作
+     * 它期望被调用时，已经处于正确的UI线程和写操作上下文中
+     */
+    public void appendTextChunk(String textChunk) {
+        Document doc = modifiedContent.getDocument();
+        doc.insertString(doc.getTextLength(), textChunk);
+    }
+
+    /**
+     * ✨ 简化：这个方法现在只负责清空文本
+     */
+    public void clearText() {
+        modifiedContent.getDocument().setText("");
+    }
+
+    // 我们不再需要 updateModifiedContent 和 appendModifiedContent 了
+    // 可以删除它们，或者保留它们并修改内部实现，但为了清晰，我们直接创建新的
 }
+
+
