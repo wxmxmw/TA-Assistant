@@ -17,17 +17,18 @@ import com.intellij.openapi.progress.Task;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.popup.JBPopup;
 import com.intellij.openapi.ui.popup.JBPopupFactory;
+import com.intellij.ui.components.JBLabel;
 import com.intellij.ui.components.JBTextField;
 import org.jetbrains.annotations.NotNull;
-import org.ta.api.ITAService;
 import org.ta.core.AIModificationUtil;
-import org.ta.core.TAService;
 import org.ta.ui.CodeModificationDialog;
+import org.ta.ui.UIAIModel;
 
 import javax.swing.*;
 import java.awt.*;
 import java.util.function.Consumer;
 import java.util.concurrent.atomic.AtomicBoolean;
+
 public class ModifyCodeWithAIAction extends AnAction {
 
     @Override
@@ -46,41 +47,99 @@ public class ModifyCodeWithAIAction extends AnAction {
         String originalCode = selectionModel.getSelectedText();
         if (originalCode == null || originalCode.isBlank()) return;
 
-        // 1. 创建一个自定义的 Panel 作为 Popup 的内容
-        JPanel panel = new JPanel(new BorderLayout());
-        JBTextField instructionField = new JBTextField("请输入你的代码修改指令...");
-        panel.add(instructionField, BorderLayout.CENTER);
+        showInlineInputPanel(project, editor, originalCode);
+    }
 
-        // 2. 使用 JBPopupFactory 创建 Popup
-        JBPopup popup = JBPopupFactory.getInstance()
-                .createComponentPopupBuilder(panel, instructionField)
-                .setTitle("AI 代码修改")
-                .setMovable(true)
-                .setRequestFocus(true)
-                .setCancelOnClickOutside(true)
-                .setAdText("按 Enter 键提交")
-                .createPopup();
+    /**
+     * 显示输入框（带模型选择）
+     */
+    private void showInlineInputPanel(Project project, Editor editor, String originalCode) {
+        JPanel mainPanel = new JPanel(new BorderLayout(5, 5));
+        mainPanel.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
+        mainPanel.setPreferredSize(new Dimension(600, 150));
 
-        // 3. 为输入框添加一个 Action Listener，当用户按 Enter 时触发
-        instructionField.addActionListener(event -> {
-            popup.closeOk(null); // 关闭 popup
-            String instruction = instructionField.getText();
-            if (instruction != null && !instruction.isBlank()) {
-                // 4. 用户提交后，在这里启动异步的 Diff 流程
-                showAsynchronousDiff(project, editor, originalCode, instruction);
+        // ========== 顶部：模型选择 ==========
+        JPanel topPanel = new JPanel(new FlowLayout(FlowLayout.LEFT, 10, 5));
+        JBLabel modelLabel = new JBLabel("模型:");
+
+        JComboBox<UIAIModel> modelComboBox = new JComboBox<>(UIAIModel.values());
+        modelComboBox.setPreferredSize(new Dimension(200, 28));
+        modelComboBox.setSelectedItem(UIAIModel.DEEPSEEK); // 默认模型
+
+        // 自定义渲染器
+        modelComboBox.setRenderer(new DefaultListCellRenderer() {
+            @Override
+            public Component getListCellRendererComponent(JList<?> list, Object value,
+                                                          int index, boolean isSelected, boolean cellHasFocus) {
+                super.getListCellRendererComponent(list, value, index, isSelected, cellHasFocus);
+                if (value instanceof UIAIModel) {
+                    UIAIModel model = (UIAIModel) value;
+                    setText(model.getDisplayName());
+                    if (index >= 0) {
+                        setToolTipText(model.getDescription());
+                    }
+                }
+                return this;
             }
         });
 
-        // 5. 显示 Popup，actionPerformed 方法的职责到此结束
+        topPanel.add(modelLabel);
+        topPanel.add(modelComboBox);
+
+        // ========== 中间：输入框 ==========
+        JBTextField inputField = new JBTextField();
+        inputField.getEmptyText().setText("描述你想要的修改或提出问题...");
+
+        // ========== 底部：按钮 ==========
+        JPanel buttonPanel = new JPanel(new FlowLayout(FlowLayout.RIGHT));
+        JButton sendButton = new JButton("发送");
+        JButton cancelButton = new JButton("取消");
+
+        buttonPanel.add(cancelButton);
+        buttonPanel.add(sendButton);
+
+        // ========== 组装 ==========
+        mainPanel.add(topPanel, BorderLayout.NORTH);
+        mainPanel.add(inputField, BorderLayout.CENTER);
+        mainPanel.add(buttonPanel, BorderLayout.SOUTH);
+
+        // ========== 创建弹窗 ==========
+        JBPopup popup = JBPopupFactory.getInstance()
+                .createComponentPopupBuilder(mainPanel, inputField)
+                .setRequestFocus(true)
+                .setTitle("AI 代码助手")
+                .setResizable(true)
+                .setMovable(true)
+                .createPopup();
+
+        // ========== 按钮事件 ==========
+        Runnable submitAction = () -> {
+            String instruction = inputField.getText().trim();
+            UIAIModel selectedModel = (UIAIModel) modelComboBox.getSelectedItem();
+
+            if (!instruction.isEmpty() && selectedModel != null) {
+                popup.cancel();
+                showAsynchronousDiff(project, editor, originalCode, instruction, selectedModel);
+            }
+        };
+
+        sendButton.addActionListener(evt -> submitAction.run());
+        cancelButton.addActionListener(evt -> popup.cancel());
+        inputField.addActionListener(evt -> submitAction.run());
+
         popup.showInBestPositionFor(editor);
     }
 
-    private void showAsynchronousDiff(Project project, Editor editor, String originalCode, String instruction) {
+    /**
+     * 显示 Diff 对话框并流式生成代码
+     */
+    private void showAsynchronousDiff(Project project, Editor editor, String originalCode,
+                                      String userInstruction, UIAIModel selectedModel) {
         // 1. 准备 Diff 窗口的初始内容
         DiffContentFactory contentFactory = DiffContentFactory.getInstance();
         DiffContent originalContent = contentFactory.create(project, originalCode);
 
-        // 2. 右侧面板的初始内容是“正在思考...”
+        // 2. 右侧面板的初始内容是"正在思考..."
         String loadingText = "正在思考，请稍候...";
         Document editableDocument = EditorFactory.getInstance().createDocument(loadingText);
         DocumentContent modifiedContent = contentFactory.create(project, editableDocument);
@@ -88,30 +147,49 @@ public class ModifyCodeWithAIAction extends AnAction {
         // 3. 定义回调
         Consumer<String> applyChangesCallback = (finalCode) -> applyChanges(project, editor, finalCode);
 
-        CodeModificationDialog dialog = new CodeModificationDialog(project, originalContent, modifiedContent, applyChangesCallback);
+        CodeModificationDialog dialog = new CodeModificationDialog(
+                project,
+                originalContent,
+                modifiedContent,
+                applyChangesCallback
+        );
+
+        // 🆕 设置多轮对话回调
+        dialog.setOnChatSubmit((nextInstruction, currentCode) -> {
+            // 用户输入新指令，基于当前右侧代码继续修改
+            continueModification(project, nextInstruction, currentCode, selectedModel, dialog);
+        });
 
         final AtomicBoolean isFirstChunk = new AtomicBoolean(true);
 
-        ProgressManager.getInstance().run(new Task.Backgroundable(project, "正在与 AI 建立连接...") {
+        ProgressManager.getInstance().run(new Task.Backgroundable(
+                project,
+                "正在使用 " + selectedModel.getDisplayName() + " 生成代码...") {
+
             @Override
             public void run(@NotNull ProgressIndicator indicator) {
+                // API Key（实际应用中应该从配置中读取）
                 String apiKey = "sk-vxlhkdlhcupthzbhbsgjodibgplhupnjsmlunudidlipbnut";
 
+                // 定义流式回调
                 Consumer<String> onChunk = (chunk) -> {
-                    // ✨ 核心修正：使用 SwingUtilities.invokeLater 和 runWriteAction 统一处理UI更新
                     SwingUtilities.invokeLater(() -> {
-                        // 在写操作中修改文档
                         WriteCommandAction.runWriteCommandAction(project, () -> {
                             if (!chunk.isEmpty() && isFirstChunk.getAndSet(false)) {
-                                dialog.clearText(); // 调用简化的清空方法
+                                dialog.clearText();
                             }
-                            dialog.appendTextChunk(chunk); // 调用简化的追加方法
+                            dialog.appendTextChunk(chunk);
                         });
                     });
                 };
 
                 Runnable onComplete = () -> {
-                    System.out.println("AI 流式输出完成。");
+                    System.out.println("✅ AI 流式输出完成。");
+                    SwingUtilities.invokeLater(() -> {
+                        dialog.setChatEnabled(true);
+                        dialog.setStatus("");
+                    });
+
                     if (isFirstChunk.get()) {
                         SwingUtilities.invokeLater(() -> {
                             WriteCommandAction.runWriteCommandAction(project, () -> {
@@ -122,29 +200,115 @@ public class ModifyCodeWithAIAction extends AnAction {
                 };
 
                 Consumer<Exception> onError = (e) -> {
-                    System.err.println("AI 流式输出错误: " + e.getMessage());
+                    System.err.println("❌ AI 流式输出错误: " + e.getMessage());
                     e.printStackTrace();
                     SwingUtilities.invokeLater(() -> {
+                        dialog.setChatEnabled(true);
+                        dialog.setStatus("✗ 生成失败");
                         WriteCommandAction.runWriteCommandAction(project, () -> {
                             dialog.updateModifiedContent("// AI 修改失败: " + e.getMessage());
                         });
                     });
                 };
 
-                AIModificationUtil.modifyCodeStream(instruction, originalCode, apiKey, onChunk, onComplete, onError);
+                // 调用 AIModificationUtil 的流式方法
+                indicator.setText("正在使用 " + selectedModel.getDisplayName() + " 处理...");
+                AIModificationUtil.modifyCodeStream(
+                        userInstruction,
+                        originalCode,
+                        apiKey,
+                        selectedModel.getBackendModel(),
+                        onChunk,
+                        onComplete,
+                        onError
+                );
             }
         });
 
         dialog.show();
-
-
     }
+
+    /**
+     * 🆕 多轮对话：继续修改代码
+     */
+    private void continueModification(Project project, String nextInstruction, String currentCode,
+                                      UIAIModel selectedModel, CodeModificationDialog dialog) {
+        final AtomicBoolean isFirstChunk = new AtomicBoolean(true);
+
+        ProgressManager.getInstance().run(new Task.Backgroundable(
+                project,
+                "正在使用 " + selectedModel.getDisplayName() + " 继续修改...") {
+
+            @Override
+            public void run(@NotNull ProgressIndicator indicator) {
+                String apiKey = "sk-vxlhkdlhcupthzbhbsgjodibgplhupnjsmlunudidlipbnut";
+
+                Consumer<String> onChunk = (chunk) -> {
+                    SwingUtilities.invokeLater(() -> {
+                        WriteCommandAction.runWriteCommandAction(project, () -> {
+                            if (!chunk.isEmpty() && isFirstChunk.getAndSet(false)) {
+                                dialog.clearText();
+                            }
+                            dialog.appendTextChunk(chunk);
+                        });
+                    });
+                };
+
+                Runnable onComplete = () -> {
+                    System.out.println("✅ 多轮对话完成。");
+                    SwingUtilities.invokeLater(() -> {
+                        dialog.setChatEnabled(true);
+                        dialog.setStatus("✓ 生成完成");
+                    });
+
+                    if (isFirstChunk.get()) {
+                        SwingUtilities.invokeLater(() -> {
+                            WriteCommandAction.runWriteCommandAction(project, () -> {
+                                dialog.updateModifiedContent("// AI 返回了空内容");
+                            });
+                        });
+                    }
+                };
+
+                Consumer<Exception> onError = (e) -> {
+                    System.err.println("❌ 多轮对话错误: " + e.getMessage());
+                    e.printStackTrace();
+                    SwingUtilities.invokeLater(() -> {
+                        dialog.setChatEnabled(true);
+                        dialog.setStatus("✗ 生成失败");
+                        WriteCommandAction.runWriteCommandAction(project, () -> {
+                            dialog.updateModifiedContent("// AI 修改失败: " + e.getMessage());
+                        });
+                    });
+                };
+
+                // 调用 AIModificationUtil，使用当前代码作为基础
+                indicator.setText("正在使用 " + selectedModel.getDisplayName() + " 处理...");
+                AIModificationUtil.modifyCodeStream(
+                        nextInstruction,
+                        currentCode,  // 🔥 使用右侧面板当前的代码
+                        apiKey,
+                        selectedModel.getBackendModel(),
+                        onChunk,
+                        onComplete,
+                        onError
+                );
+            }
+        });
+    }
+
+    /**
+     * 应用修改到编辑器
+     */
     private void applyChanges(Project project, Editor editor, String newText) {
-        Document document = editor.getDocument();
         SelectionModel selectionModel = editor.getSelectionModel();
 
         WriteCommandAction.runWriteCommandAction(project, () -> {
-            document.replaceString(selectionModel.getSelectionStart(), selectionModel.getSelectionEnd(), newText);
+            editor.getDocument().replaceString(
+                    selectionModel.getSelectionStart(),
+                    selectionModel.getSelectionEnd(),
+                    newText
+            );
         });
     }
 }
