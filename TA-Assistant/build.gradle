@@ -64,6 +64,10 @@ dependencies {
     // 日志
     implementation 'org.slf4j:slf4j-api:2.0.9'
     implementation 'org.slf4j:slf4j-simple:2.0.9'
+
+    //转 html
+    implementation 'org.commonmark:commonmark:0.21.0'
+    implementation 'org.commonmark:commonmark-ext-gfm-tables:0.21.0'
 }
 
 // ✅ 重要：配置插件任务，包含所有依赖
