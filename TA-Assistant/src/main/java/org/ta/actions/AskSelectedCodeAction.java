@@ -41,9 +41,14 @@ public class AskSelectedCodeAction extends AnAction {
                 Content[] contents = toolWindow.getContentManager().getContents();
                 for (Content content : contents) {
                     if (content.getComponent() instanceof ChatPanel panel) {
-                        // Determine filename for chip title
+                        // 以 文件名:起止行 的形式作为上下文标题
                         VirtualFile vf = e.getData(CommonDataKeys.VIRTUAL_FILE);
-                        String title = (vf != null) ? vf.getName() : "当前文件";
+                        String fileName = (vf != null) ? vf.getName() : "当前文件";
+                        int startOffset = editor.getSelectionModel().getSelectionStart();
+                        int endOffset = editor.getSelectionModel().getSelectionEnd();
+                        int startLine = editor.getDocument().getLineNumber(startOffset) + 1;
+                        int endLine = editor.getDocument().getLineNumber(endOffset) + 1;
+                        String title = fileName + ":" + startLine + "-" + endLine;
                         // Stash context instead of sending immediately
                         panel.addContext(title, selectedText);
                         break;

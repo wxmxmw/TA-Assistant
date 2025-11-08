@@ -19,6 +19,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 /**
  * ChatPanel: 完整聊天界面,带用户/AI气泡,支持上下文管理。
@@ -107,6 +108,23 @@ public class ChatPanel extends JPanel {
         JScrollPane scrollPane = new JScrollPane(messageAreaPanel);
         scrollPane.setVerticalScrollBarPolicy(JScrollPane.VERTICAL_SCROLLBAR_AS_NEEDED);
 
+        // 上下文区（显示在对话框下方）
+        JPanel contextWrapper = new JPanel(new BorderLayout());
+        contextWrapper.setOpaque(false);
+        JLabel ctxHeader = new JLabel("上下文:");
+        ctxHeader.setFont(ctxHeader.getFont().deriveFont(11f));
+        ctxHeader.setForeground(new Color(100, 100, 100));
+        JPanel ctxHeaderPanel = new JPanel(new BorderLayout());
+        ctxHeaderPanel.setOpaque(false);
+        ctxHeaderPanel.add(ctxHeader, BorderLayout.WEST);
+        contextWrapper.add(ctxHeaderPanel, BorderLayout.NORTH);
+        contextWrapper.add(contextsPanel, BorderLayout.CENTER);
+
+        JPanel centerWrapper = new JPanel(new BorderLayout());
+        centerWrapper.setOpaque(false);
+        centerWrapper.add(scrollPane, BorderLayout.CENTER);
+        centerWrapper.add(contextWrapper, BorderLayout.SOUTH);
+
         // 输入区
         JPanel top = new JPanel(new BorderLayout(8, 0));
         top.add(inputField, BorderLayout.CENTER);
@@ -122,7 +140,7 @@ public class ChatPanel extends JPanel {
         top.add(buttonPanel, BorderLayout.EAST);
 
         add(top, BorderLayout.NORTH);
-        add(scrollPane, BorderLayout.CENTER);
+        add(centerWrapper, BorderLayout.CENTER);
 
         // 发送按钮事件
         sendButton.addActionListener(e -> {
@@ -166,6 +184,10 @@ public class ChatPanel extends JPanel {
         }
 
         appendMessage("You: " + question, ChatBubble.Type.USER, null);
+        // 在“你”的消息气泡下附带每个上下文标题
+        if (!contexts.isEmpty()) {
+            renderUserContextTitles();
+        }
 
         // 显示加载状态
         JLabel loadingLabel = new JLabel("正在思考...");
@@ -316,6 +338,41 @@ public class ChatPanel extends JPanel {
         messageAreaPanel.repaint();
     }
 
+    // 在用户消息气泡下方渲染当前上下文的标题列表
+    private void renderUserContextTitles() {
+        JPanel titlesContainer = new JPanel();
+        titlesContainer.setLayout(new BoxLayout(titlesContainer, BoxLayout.Y_AXIS));
+        titlesContainer.setOpaque(false);
+        titlesContainer.setBorder(BorderFactory.createEmptyBorder(0, 50, 0, 100));
+
+        JLabel header = new JLabel("附带上下文:");
+        header.setFont(header.getFont().deriveFont(11f));
+        header.setForeground(new Color(100, 100, 100));
+
+        JPanel headerPanel = new JPanel(new BorderLayout());
+        headerPanel.setOpaque(false);
+        headerPanel.add(header, BorderLayout.WEST);
+
+        titlesContainer.add(headerPanel);
+        titlesContainer.add(Box.createVerticalStrut(1));
+
+        for (ContextItem c : contexts) {
+            JLabel titleLabel = new JLabel("• " + c.title);
+            titleLabel.setFont(titleLabel.getFont().deriveFont(10f));
+            titleLabel.setForeground(new Color(120, 120, 120));
+            titlesContainer.add(titleLabel);
+        }
+
+        JPanel wrapper = new JPanel(new BorderLayout());
+        wrapper.setOpaque(false);
+        wrapper.add(titlesContainer, BorderLayout.WEST);
+
+        messageAreaPanel.add(wrapper);
+        messageAreaPanel.add(Box.createVerticalStrut(1));
+        messageAreaPanel.revalidate();
+        messageAreaPanel.repaint();
+    }
+
     private JPanel createCitationCard(Citation citation) {
         JPanel card = new JPanel(new BorderLayout(6, 0));
         card.setBackground(new Color(245, 247, 250));
@@ -356,14 +413,38 @@ public class ChatPanel extends JPanel {
      */
     private void openPdfFromCitation(Citation citation) {
         System.out.println("尝试打开 PDF: " + citation.getSourceFile());
-        // 从 citation 中提取 PDF 文件名
-        String fileName = citation.getSourceFile();
-        Path pdfPath = Paths.get("D:/0-xiangmu/TA-Assistant/build/resources/main/docs", fileName);
+        String fileNameOrPath = citation.getSourceFile();
 
-        if (Files.exists(pdfPath)) {
-            openPdfFile(pdfPath);
+        List<Path> candidates = new ArrayList<>();
+        Path asPath = Paths.get(fileNameOrPath);
+        if (asPath.isAbsolute()) {
+            candidates.add(asPath);
+        }
+        // 开发环境资源目录
+        candidates.add(Paths.get("src/main/resources/docs", fileNameOrPath));
+        // 构建产物资源目录
+        candidates.add(Paths.get("build/resources/main/docs", fileNameOrPath));
+        // 项目根下的 docs 目录
+        candidates.add(Paths.get("docs", fileNameOrPath));
+
+        Path found = null;
+        for (Path p : candidates) {
+            if (Files.exists(p)) {
+                found = p;
+                break;
+            }
+        }
+
+        if (found != null) {
+            openPdfFile(found);
         } else {
-            JOptionPane.showMessageDialog(this, "找不到文件: " + fileName);
+            JOptionPane.showMessageDialog(
+                    this,
+                    "找不到文件: " + fileNameOrPath + "\n已尝试路径:\n" +
+                            candidates.stream().map(Path::toString).collect(Collectors.joining("\n")),
+                    "错误",
+                    JOptionPane.ERROR_MESSAGE
+            );
         }
     }
 
@@ -429,8 +510,8 @@ public class ChatPanel extends JPanel {
             Path selectedFile = fileChooser.getSelectedFile().toPath();
 
             try {
-                // 创建 docs 目录(如果不存在)
-                Path docsDir = Paths.get("D:/0.1-java/TA-Assistant/TA-Assistant/src/main/resources/docs");
+                // 使用项目资源目录，避免硬编码绝对路径
+                Path docsDir = Paths.get("src/main/resources/docs");
                 if (!Files.exists(docsDir)) {
                     Files.createDirectories(docsDir);
                 }

@@ -5,7 +5,8 @@
     <option name="linkedExternalProjectsSettings">
       <GradleProjectSettings>
         <option name="externalProjectPath" value="$PROJECT_DIR$/TA-Assistant" />
-        <option name="gradleJvm" value="21" />
+        <option name="gradleHome" value="E:\gradle-8.14" />
+        <option name="gradleJvm" value="corretto-17" />
         <option name="modules">
           <set>
             <option value="$PROJECT_DIR$/TA-Assistant" />
