@@ -59,7 +59,7 @@ public class ChatBubble extends JPanel {
             setBorder(BorderFactory.createEmptyBorder(2, 100, 2, 8)); // 左宽右窄
             add(wrapper, BorderLayout.EAST);
         } else {
-            setBorder(BorderFactory.createEmptyBorder(2, 2, 2, 100)); // 右宽左窄
+            setBorder(BorderFactory.createEmptyBorder(2, 2, 0, 100)); // 右宽左窄
             add(wrapper, BorderLayout.WEST);
         }
     }

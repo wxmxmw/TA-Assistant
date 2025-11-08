@@ -36,7 +36,7 @@ public class TAService implements ITAService {
             this.knowledgeStore = new HybridKnowledgeStore(apiKey);
 
             // 2. 加载并索引所有文档 (只执行一次!)
-            Path docPath = Path.of("D:/Grade Three/Java/A1/TA-Assistant/TA-Assistant/src/main/resources/docs/sample1.PDF");
+            Path docPath = Path.of("src/main/resources/docs/sample1.PDF");
             LOG.info("Loading documents into knowledge store...");
             this.knowledgeStore.addDocuments(List.of(docPath));
             LOG.info("Documents loaded successfully.");
@@ -71,6 +71,7 @@ public class TAService implements ITAService {
         // 3. 执行 RAG 流程并返回结果
         return ragService.answer(question, codeContext, topK);
     }
+
 
     //F2功能实现处
 
@@ -122,5 +123,13 @@ public class TAService implements ITAService {
             response = response.substring(0, response.length() - "\n```".length());
         }
         return response.trim();
+    }
+
+    //新增文档上传
+    public void addDocument(Path docPath) throws IOException {
+        LOG.info("Adding document: " + docPath.getFileName());
+        this.knowledgeStore.addDocuments(List.of(docPath));
+        LOG.info("Document added successfully: " + docPath.getFileName());
+
     }
 }

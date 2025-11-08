@@ -32,7 +32,7 @@ public class MockTAService  {
 
         // 1. 添加 PDF 文档（这里改成你自己的路径）
 
-        Path docPath = Path.of("D:/Grade Three/Java/A1/TA-Assistant/TA-Assistant/src/main/resources/docs/sample1.PDF");
+        Path docPath = Path.of("src/main/resources/docs/sample1.PDF");
         store.addDocuments(List.of(docPath));
 
 
