@@ -98,20 +98,18 @@ public class TAService implements ITAService {
     }
 
     private String buildCodeModificationPrompt(String instruction, String code) {
-        return "你是一名资深的Java架构师和重构专家。\n" +
-                "你的任务是根据用户的指令，修改给定的Java代码片段。\n" +
-                "规则：\n" +
-                "1. 严格遵循用户的指令进行修改。\n" +
-                "2. 不要添加任何与代码无关的解释、注释或道歉。你的回答必须是纯粹的、可直接编译的Java代码。\n" +
-                "3. 保持原始代码的缩进和格式风格。\n" +
-                "4. 如果无法完成指令，请返回原始代码。\n\n" +
-                "[用户指令]\n" +
+        return "You are a senior Java architect and refactoring expert.\n" +
+                "Your task is to modify the given Java code snippet according to the user's instructions.\n" +
+                "Rules:\n" +
+                "1. Strictly follow the user's instructions for modification.\n" +
+                "2. Do not add any explanations, comments, or apologies unrelated to the code. Your response must be purely, directly compilable Java code.\n" +
+                "3. Maintain the indentation and formatting style of the original code.\n" +
+                "4. If the instruction cannot be completed, return the original code.\n\n" +
+                "\"[User Instruction]\"\n" +
                 instruction + "\n\n" +
-                "[原始代码]\n" +
-                "```java\n" +
-                code + "\n" +
-                "```\n\n" +
-                "[修改后的代码]\n";
+                "\"[Original Code]\"\n" +
+                "```java\n" + code + "\n" + "```\n\n" +
+                "\"[Modified Code]\"\n";
     }
 
     private String cleanCodeBlock(String response) {

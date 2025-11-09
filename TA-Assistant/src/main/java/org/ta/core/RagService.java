@@ -62,24 +62,24 @@ public class RagService {
         String formattedChunks = chunks.isEmpty() ? "无" : formatChunks(chunks);
         String contextText = codeContext.orElse("无");
 
-        return "你是一个Java企业应用开发课程的助教。请严格根据下面提供的[背景知识]来回答[用户问题]。\n" +
-                "规则：\n" +
-                "1. 如果[背景知识]对回答问题有帮助，你的回答必须结合其中的信息。\n" +
-                "2. 如果你使用了[背景知识]中的信息，必须在回答的结尾处，按照 \"[cite: 文件名, 页码范围]\" 的格式，清晰地列出所有引用来源。\n" +
-                "3. 如果[背景知识]与问题完全无关，或内容为空，请使用你自己的通用知识来回答问题。但是，你的回答必须以特殊标记 \"[GENERAL_KNOWLEDGE]\" 开头，并且不能包含任何 cite 引用标记。\n" +
-                "4. 如果用户提供了[代码上下文]，请结合代码进行分析和回答。\n" +
+        return "You are a teaching assistant for the Java Enterprise Application Development course. Please strictly follow the \"[Background Knowledge]\" provided below to answer the \"[User Question]\".\n" +
+                "Rules:\n" +
+                "1. If the \"[Background Knowledge]\" is helpful for answering the question, your answer must incorporate information from it.\n" +
+                "2. If you use information from the \"[Background Knowledge]\" you must clearly list all cited sources at the end of your answer in the format \"[cite: file_name, page_range]\".\n" +
+                "3. If the \"[Background Knowledge]\" is completely irrelevant to the question or is empty, please use your own general knowledge to answer. However, your answer must start with the special marker \"[GENERAL_KNOWLEDGE]\" and must not contain any cite reference markers.\n" +
+                "4. If the user provides \"[Code Context]\", please analyze and answer in conjunction with the code.\n" +
                 "\n" +
-                "[背景知识]\n" +
+                "\"[Background Knowledge]\"\n" +
                 "---\n" +
                 formattedChunks + "\n" +
                 "---\n" +
                 "\n" +
-                "[代码上下文]\n" +
+                "\"[Code Context]\"\n" +
                 "---\n" +
                 contextText + "\n" +
                 "---\n" +
                 "\n" +
-                "[用户问题]\n" +
+                "\"[User Question]\"\n" +
                 question;
     }
 
