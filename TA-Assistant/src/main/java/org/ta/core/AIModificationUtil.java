@@ -95,10 +95,12 @@ public final class AIModificationUtil {
 
     private static String buildCodeModificationPrompt(String instruction, String code) {
         return "You are a senior Java architect and refactoring expert.\n" +
-                "Your task is to modify the given Java code snippet according to the user's instructions.\n" +
+                "Your task is to modify the given Java code " +
+                " according to the user's instructions.\n" +
                 "Rules:\n" +
                 "1. Strictly follow the user's instructions for modification.\n" +
-                "2. Do not add any explanations, comments, or apologies unrelated to the code. Your response must be purely, directly compilable Java code.\n" +
+                "2. Do not add any explanations, comments, or apologies unrelated to the code. " +
+                "Your response must be purely, directly compilable Java code.\n" +
                 "3. Maintain the indentation and formatting style of the original code.\n" +
                 "4. If the instruction cannot be completed, return the original code.\n\n" +
                 "\"[User Instruction]\"\n" +
@@ -108,7 +110,7 @@ public final class AIModificationUtil {
                 "\"[Modified Code]\"\n";
     }
 
-    private static String cleanCodeBlock(String response) {
+    public static String cleanCodeBlock(String response) {
         // 移除 Markdown 代码块标记
         response = response.trim();
 

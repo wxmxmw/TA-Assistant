@@ -157,7 +157,7 @@ public class ModifyCodeWithAIAction extends AnAction {
         // 🆕 设置多轮对话回调
         dialog.setOnChatSubmit((nextInstruction, currentCode) -> {
             // 用户输入新指令，基于当前右侧代码继续修改
-            continueModification(project, nextInstruction, currentCode, selectedModel, dialog);
+            continueModification(project, nextInstruction, currentCode, selectedModel, dialog,editableDocument);
         });
 
         final AtomicBoolean isFirstChunk = new AtomicBoolean(true);
@@ -186,8 +186,23 @@ public class ModifyCodeWithAIAction extends AnAction {
                 Runnable onComplete = () -> {
                     System.out.println("✅ AI 流式输出完成。");
                     SwingUtilities.invokeLater(() -> {
+                        // 🔥 核心修复：在完成时对整个文档进行一次最终清洗
+                        WriteCommandAction.runWriteCommandAction(project, () -> {
+                            // 1. 获取当前生成的所有文本
+                            Document doc = modifiedContent.getDocument();
+                            String rawText = doc.getText();
+
+                            // 2. 调用工具类清洗（去除首尾的 ```java 和 ```）
+                            String cleanedText = AIModificationUtil.cleanCodeBlock(rawText);
+
+                            // 3. 如果清洗后内容有变化，更新文档
+                            if (!rawText.equals(cleanedText)) {
+                                doc.setText(cleanedText);
+                            }
+                        });
+
                         dialog.setChatEnabled(true);
-                        dialog.setStatus("");
+                        dialog.setStatus(isFirstChunk.get() ? "⚠ 无内容生成" : "");
                     });
 
                     if (isFirstChunk.get()) {
@@ -231,8 +246,14 @@ public class ModifyCodeWithAIAction extends AnAction {
     /**
      * 🆕 多轮对话：继续修改代码
      */
+    /**
+     * 🆕 多轮对话：继续修改代码
+     * 增加了一个参数 editableDocument，用于在最后进行全文清洗
+     */
     private void continueModification(Project project, String nextInstruction, String currentCode,
-                                      UIAIModel selectedModel, CodeModificationDialog dialog) {
+                                      UIAIModel selectedModel, CodeModificationDialog dialog,
+                                      Document editableDocument) { // 👈 新增这个参数
+
         final AtomicBoolean isFirstChunk = new AtomicBoolean(true);
 
         ProgressManager.getInstance().run(new Task.Backgroundable(
@@ -241,6 +262,7 @@ public class ModifyCodeWithAIAction extends AnAction {
 
             @Override
             public void run(@NotNull ProgressIndicator indicator) {
+                // 你的 API Key
                 String apiKey = "sk-vxlhkdlhcupthzbhbsgjodibgplhupnjsmlunudidlipbnut";
 
                 Consumer<String> onChunk = (chunk) -> {
@@ -254,13 +276,29 @@ public class ModifyCodeWithAIAction extends AnAction {
                     });
                 };
 
+                // 🔥 核心修改在这里
                 Runnable onComplete = () -> {
                     System.out.println("✅ 多轮对话完成。");
+
                     SwingUtilities.invokeLater(() -> {
+                        // 1. 在 WriteCommandAction 中进行最终清洗
+                        WriteCommandAction.runWriteCommandAction(project, () -> {
+                            String rawText = editableDocument.getText();
+                            // 调用工具类清洗
+                            String cleanedText = AIModificationUtil.cleanCodeBlock(rawText);
+
+                            // 如果有变化（比如去掉了 ```），则更新文档
+                            if (!rawText.equals(cleanedText)) {
+                                editableDocument.setText(cleanedText);
+                            }
+                        });
+
+                        // 2. 恢复 UI 状态
                         dialog.setChatEnabled(true);
                         dialog.setStatus("✓ 生成完成");
                     });
 
+                    // 处理空内容的边缘情况
                     if (isFirstChunk.get()) {
                         SwingUtilities.invokeLater(() -> {
                             WriteCommandAction.runWriteCommandAction(project, () -> {
@@ -286,7 +324,7 @@ public class ModifyCodeWithAIAction extends AnAction {
                 indicator.setText("正在使用 " + selectedModel.getDisplayName() + " 处理...");
                 AIModificationUtil.modifyCodeStream(
                         nextInstruction,
-                        currentCode,  // 🔥 使用右侧面板当前的代码
+                        currentCode,
                         apiKey,
                         selectedModel.getBackendModel(),
                         onChunk,

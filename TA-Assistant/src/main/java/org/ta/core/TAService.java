@@ -35,10 +35,20 @@ public class TAService implements ITAService {
             // 1. 初始化知识库 (只执行一次!)
             this.knowledgeStore = new HybridKnowledgeStore(apiKey);
 
-            // 2. 加载并索引所有文档 (只执行一次!)
-            Path docPath = Path.of("src/main/resources/docs/sample1.PDF");
-            LOG.info("Loading documents into knowledge store...");
-            this.knowledgeStore.addDocuments(List.of(docPath));
+            List<Path> docPaths = List.of(
+
+                    //Path.of("D:\\Grade Three\\Java\\docs\\Lec01.PDF"),
+                    Path.of("D:\\Grade Three\\Java\\docs\\Lec02.PDF"),
+                    Path.of("D:\\Grade Three\\Java\\docs\\Lec03.PDF"),
+                    Path.of("D:\\Grade Three\\Java\\docs\\Lec04.PDF"),
+                    Path.of("D:\\Grade Three\\Java\\docs\\Lec05.PDF"),
+                    Path.of("D:\\Grade Three\\Java\\docs\\Lec06.PDF"),
+                    Path.of("D:\\Grade Three\\Java\\docs\\Lec07.PDF"),
+                    Path.of("D:\\Grade Three\\Java\\docs\\Lec08.PDF")
+            );
+
+            // 传入这个 List
+            this.knowledgeStore.addDocuments(docPaths);
             LOG.info("Documents loaded successfully.");
 
         } catch (Exception e) {
@@ -102,7 +112,8 @@ public class TAService implements ITAService {
                 "Your task is to modify the given Java code snippet according to the user's instructions.\n" +
                 "Rules:\n" +
                 "1. Strictly follow the user's instructions for modification.\n" +
-                "2. Do not add any explanations, comments, or apologies unrelated to the code. Your response must be purely, directly compilable Java code.\n" +
+                "2. Do not add any explanations, comments, or apologies unrelated to the code. " +
+                "Your response must be purely, directly compilable Java code.\n" +
                 "3. Maintain the indentation and formatting style of the original code.\n" +
                 "4. If the instruction cannot be completed, return the original code.\n\n" +
                 "\"[User Instruction]\"\n" +

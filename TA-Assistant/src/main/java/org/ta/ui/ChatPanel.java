@@ -421,7 +421,7 @@ public class ChatPanel extends JPanel {
             candidates.add(asPath);
         }
         // 开发环境资源目录
-        candidates.add(Paths.get("src/main/resources/docs", fileNameOrPath));
+        candidates.add(Paths.get("D:\\Grade Three\\Java\\docs", fileNameOrPath));
         // 构建产物资源目录
         candidates.add(Paths.get("build/resources/main/docs", fileNameOrPath));
         // 项目根下的 docs 目录
@@ -511,7 +511,7 @@ public class ChatPanel extends JPanel {
 
             try {
                 // 使用项目资源目录，避免硬编码绝对路径
-                Path docsDir = Paths.get("src/main/resources/docs");
+                Path docsDir = Paths.get("D:\\Grade Three\\Java\\docs");
                 if (!Files.exists(docsDir)) {
                     Files.createDirectories(docsDir);
                 }
